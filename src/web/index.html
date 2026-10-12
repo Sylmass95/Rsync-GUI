@@ -102,7 +102,7 @@ button.sm{height:26px;padding:0 11px;font-size:12px}
 
 /* ===== Colonne d'actions ===== */
 .mid{display:flex;flex-direction:column;gap:8px;justify-content:center}
-.mid button{width:100%;justify-content:flex-start;padding:0 12px}
+.mid button{width:100%;justify-content:center;padding:0 12px}
 .mid .sp{height:1px;background:var(--hair);margin:4px 6px}
 
 /* ===== Sections / cartes ===== */
@@ -147,17 +147,6 @@ pre{background:var(--glass2);border:1px solid var(--hair);border-radius:14px;pad
   background:var(--glass3);-webkit-backdrop-filter:blur(30px);backdrop-filter:blur(30px);border:1px solid var(--hair);box-shadow:inset 0 1px 0 var(--hi),0 10px 30px rgba(0,0,0,.22);font-weight:500}
 #toast.on{opacity:1;transform:translateX(-50%)}
 
-/* ===== Feuille de dialogue ===== */
-dialog{border:1px solid var(--hair);border-radius:28px;color:var(--fg);width:min(620px,92vw);padding:24px 26px;
-  background:var(--glass3);-webkit-backdrop-filter:blur(40px) saturate(1.8);backdrop-filter:blur(40px) saturate(1.8);
-  box-shadow:inset 0 1px 0 var(--hi),0 30px 80px rgba(0,0,0,.35)}
-dialog::backdrop{background:rgba(0,0,0,.28);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
-dialog h2{margin:0 0 4px;font-size:19px;font-weight:650}
-label{display:block;font-size:12px;color:var(--mut);font-weight:500;margin:14px 2px 5px}
-dialog input[type=text],dialog input[type=number]{width:100%;height:34px;font:inherit;padding:0 14px;border-radius:12px;border:1px solid var(--hair);background:var(--glass2);color:var(--fg);outline:none;box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
-dialog input:focus{border-color:color-mix(in srgb,var(--acc) 60%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 24%,transparent)}
-.chk{display:flex;gap:9px;align-items:center;margin-top:12px;font-size:13px}.chk input{accent-color:var(--acc);width:16px;height:16px}
-dialog .hint{margin:6px 2px 0}
 </style></head><body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -179,7 +168,6 @@ dialog .hint{margin:6px 2px 0}
  <symbol id="ic-left" viewBox="0 0 16 16"><path d="M13 8H3.5M7.2 4.3L3.5 8l3.7 3.7"/></symbol>
  <symbol id="ic-sync" viewBox="0 0 16 16"><path d="M2.6 6.4A5.4 5.4 0 0 1 12.2 4.6L13.4 6"/><path d="M13.4 2.8V6h-3.2"/><path d="M13.4 9.6A5.4 5.4 0 0 1 3.8 11.4L2.6 10"/><path d="M2.6 13.2V10h3.2"/></symbol>
  <symbol id="ic-eye" viewBox="0 0 16 16"><path d="M1.6 8S4 3.6 8 3.6 14.4 8 14.4 8 12 12.4 8 12.4 1.6 8 1.6 8z"/><circle cx="8" cy="8" r="1.9"/></symbol>
- <symbol id="ic-bookmark" viewBox="0 0 16 16"><path d="M4.2 2.6h7.6v10.8L8 10.7l-3.8 2.7z"/></symbol>
  <symbol id="ic-pause" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.5 3h2.4v10H4.5zM9.1 3h2.4v10H9.1z"/></symbol>
  <symbol id="ic-play" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.6 2.8v10.4L13 8z"/></symbol>
  <symbol id="ic-stop" viewBox="0 0 16 16"><rect fill="currentColor" stroke="none" x="3.6" y="3.6" width="8.8" height="8.8" rx="2"/></symbol>
@@ -188,8 +176,6 @@ dialog .hint{margin:6px 2px 0}
  <symbol id="ic-moon" viewBox="0 0 16 16"><path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z"/></symbol>
  <symbol id="ic-mini" viewBox="0 0 16 16"><rect x="1.8" y="3" width="12.4" height="9.4" rx="2.4"/><rect fill="currentColor" stroke="none" x="8" y="7.2" width="4.6" height="3.6" rx="1.2"/></symbol>
  <symbol id="ic-redo" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7"/><path d="M3 2.6v2.8h2.8"/></symbol>
- <symbol id="ic-plus" viewBox="0 0 16 16"><path d="M8 3.2v9.6M3.2 8h9.6"/></symbol>
- <symbol id="ic-trash" viewBox="0 0 16 16"><path d="M3 4.4h10M6.2 4.4V3h3.6v1.4M4.2 4.4l.6 8.4h6.4l.6-8.4"/></symbol>
  <symbol id="ic-log" viewBox="0 0 16 16"><path d="M3.5 4.5h9M3.5 8h9M3.5 11.5h5.5"/></symbol>
 </defs></svg>
 
@@ -219,39 +205,23 @@ dialog .hint{margin:6px 2px 0}
   <div class="sp"></div>
   <button onclick="syncDir('L','R',false)" title="Copie tout le contenu du dossier de gauche vers celui de droite"><svg class="ic"><use href="#ic-sync"/></svg>Synchroniser</button>
   <button onclick="syncDir('L','R',true)" title="Affiche ce qui serait copié, sans rien copier"><svg class="ic"><use href="#ic-eye"/></svg>Simuler</button>
-  <button onclick="memorize()" title="Enregistrer gauche → droite comme tâche réutilisable"><svg class="ic"><use href="#ic-bookmark"/></svg>Mémoriser</button>
  </div>
  <section class="pane glass" id="paneR"></section>
 </div>
 <div class="hint">Clic = sélectionner (⌘ ajouter, ⇧ plage) · double-clic = ouvrir un dossier · glisser les éléments d'un panneau vers l'autre pour les copier · clic droit = favoris et options.</div>
 
 <div class="sec"><h2>Transferts</h2><button class="sm" onclick="clearFinished()">Effacer l'historique</button></div><div id="transfers"></div>
-<div class="sec"><h2>Tâches enregistrées</h2><button class="p sm" onclick="openForm()"><svg class="ic"><use href="#ic-plus"/></svg>Nouvelle tâche</button></div><div id="jobs"></div>
 </main>
 
-<dialog id="dlg"><form method="dialog" onsubmit="return false">
-<h2 id="dtitle">Tâche</h2>
-<label>Nom</label><input type="text" id="f_name" placeholder="Vidéos de l événement">
-<label>Source (dossier : son contenu est copié)</label><input type="text" id="f_source">
-<label>Destination</label><input type="text" id="f_dest" oninput="detect()">
-<label>Adresse de remontage du NAS (optionnel)</label>
-<input type="text" id="f_url" placeholder="smb://nas.local/archives">
-<div class="hint">Remonte le partage tout seul après une coupure (identifiants du Trousseau).</div>
-<label>Tentatives maximum</label><input type="number" id="f_retries" min="1" value="20">
-<div class="chk"><input type="checkbox" id="f_ds" checked><span>Ignorer les .DS_Store</span></div>
-<div class="chk"><input type="checkbox" id="f_mirror"><span>Mode miroir : supprime à la destination ce qui n'est plus dans la source</span></div>
-<div class="btns" style="justify-content:flex-end;margin-top:22px">
-<button type="button" onclick="dlg.close()">Annuler</button><button type="button" class="p" onclick="saveJob()">Enregistrer</button></div>
-</form></dialog>
 <div id="ctx"></div>
 <div id="dd"></div>
 <div id="toast"></div>
 
 <script>
-const T="__TOKEN__";const $=id=>document.getElementById(id);const dlg=$("dlg");
+const T="__TOKEN__";const $=id=>document.getElementById(id);
 if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.app)document.documentElement.classList.add("native");
 let activeSide="L";
-let state={jobs:[],runs:{},mounts:{},places:[],favorites:[]},editId=null,openLogs={},sig="",placesSig="";
+let state={runs:{},mounts:{},places:[],favorites:[]},openLogs={},sig="",placesSig="";
 const P={L:{path:"",entries:[],sel:new Set(),last:-1,error:"",sizes:{},gen:0},R:{path:"",entries:[],sel:new Set(),last:-1,error:"",sizes:{},gen:0}};
 const ACTIVE=["starting","running","retrying","paused"];
 
@@ -404,7 +374,6 @@ async function syncDir(from,to,dry){
  try{await api(dry?"/api/syncdry":"/api/sync",{source:src,dest});toast(dry?"Simulation lancée":"Synchronisation lancée");sig="";refresh()}catch(e){alert(e.message)}}
 async function mkdir(side){const n=prompt("Nom du nouveau dossier :");if(!n)return;
  try{await api("/api/mkdir",{path:join(P[side].path,n)});go(side,P[side].path)}catch(e){alert(e.message)}}
-function memorize(){openForm(null,{source:P.L.path,dest:P.R.path,name:"Synchro "+P.L.path.split("/").pop()})}
 
 /* ---------- transferts & tâches ---------- */
 const LAB={starting:"Démarrage",running:"En cours",retrying:"Reprise…",paused:"En pause",interrupted:"Interrompu",done:"Terminé",error:"Échec",stopped:"Arrêté"};
@@ -438,13 +407,10 @@ function card(id,name,sub,r,extra){
  <div class="btns">${extra(busy,st)}<button data-log="${id}">${ic("log")}${openLogs[id]?"Masquer le journal":"Journal"}</button></div>
  ${openLogs[id]&&r?`<pre>${esc(r.log.join("\n"))}</pre>`:""}</div>`}
 function renderLists(){
- const tr=Object.entries(state.runs).filter(([k,r])=>r.ephemeral);
- $("transfers").innerHTML=tr.length?tr.reverse().map(([k,r])=>card(k,r.name,esc(r.source)+"<br>→ "+esc(r.dest)+"<br>"+fmtDate(r.started_at),r,(busy,st)=>
+ const tr=Object.entries(state.runs).sort((x,y)=>y[1].started_at-x[1].started_at);
+ $("transfers").innerHTML=tr.length?tr.map(([k,r])=>card(k,r.name,esc(r.source)+"<br>→ "+esc(r.dest)+"<br>"+fmtDate(r.started_at),r,(busy,st)=>
   busy?ctl(k,st)+`<button class="d" data-act="stop" data-id="${k}">${ic("stop")}Arrêter</button>`:
-  (["interrupted","stopped","error"].includes(st)?`<button class="p" data-act="restart" data-id="${k}">${ic("redo")}Reprendre</button>`:"")+`<button data-act="clear" data-id="${k}">Effacer</button>`)).join(""):'<div class="empty">Aucun transfert.</div>';
- $("jobs").innerHTML=state.jobs.length?state.jobs.map(j=>card(j.id,j.name,esc(j.source)+"<br>→ "+esc(j.dest),state.runs[j.id],(busy,st)=>
-  (busy?ctl(j.id,st)+`<button class="d" data-act="stop" data-id="${j.id}">${ic("stop")}Arrêter</button>`:`<button class="p" data-act="run" data-id="${j.id}">${ic("play")}Lancer</button><button data-act="dry" data-id="${j.id}">Simuler</button>`)+
-  `<button ${busy?"disabled":""} data-act="edit" data-id="${j.id}">Modifier</button><button class="d" ${busy?"disabled":""} data-act="del" data-id="${j.id}">${ic("trash")}Supprimer</button>`)).join(""):'<div class="empty">Aucune tâche enregistrée.</div>';
+  (["interrupted","stopped","error"].includes(st)?`<button class="p" data-act="restart" data-id="${k}">${ic("redo")}Reprendre</button>`:"")+`<button data-act="clear" data-id="${k}">Effacer</button>`)).join(""):'<div class="empty">Aucun transfert. Sélectionnez des éléments et cliquez sur Copier, ou glissez-les vers l\'autre panneau.</div>';
  const rs=state.rsync||{},u=rs.update||{},busyU=["checking","building"].includes(u.state);
  $("rs").innerHTML="rsync <b>"+(rs.version?esc(rs.version):"introuvable")+"</b>"+(rs.origin?" · "+esc(rs.origin):"")+(u.message&&u.state!=="idle"?" · "+esc(u.message):"")+
   `<button class="icon sm" style="width:22px;height:22px;margin-left:2px" title="Mettre à jour rsync" ${busyU?"disabled":""} onclick="updRsync()">${ic("refresh")}</button>`;
@@ -455,29 +421,14 @@ document.addEventListener("click",async e=>{
  const b=e.target.closest("button");if(!b)return;
  if(b.dataset.log){openLogs[b.dataset.log]=!openLogs[b.dataset.log];sig="";renderLists();return}
  const a=b.dataset.act,id=b.dataset.id;if(!a)return;
- if(a==="edit")return openForm(id);
- if(a==="del"){if(confirm("Supprimer cette tâche ? (les fichiers ne sont pas touchés)")){await api("/api/delete",{id});sig="";refresh()}return}
  await api("/api/"+a,{id});sig="";refresh()});
 async function refresh(){try{state=await api("/api/state");
  const ps=JSON.stringify([state.places,state.favorites]);if(ps!==placesSig){placesSig=ps;fillPlaces("L");fillPlaces("R")}
- const s=JSON.stringify([state.jobs,state.runs,state.mounts,state.rsync,openLogs]);if(s!==sig&&!dlg.open){sig=s;renderLists()}}catch(e){}}
+ const s=JSON.stringify([state.runs,state.mounts,state.rsync,openLogs]);if(s!==sig){sig=s;renderLists()}}catch(e){}}
 
 async function clearFinished(){if(!Object.values(state.runs).some(r=>!ACTIVE.includes(r.status)))return;
  if(confirm("Effacer l'historique des transferts terminés ou interrompus ?")){await api("/api/clear-finished",{});sig="";refresh()}}
 async function updRsync(){await api("/api/rsync-update",{});sig="";refresh()}
-
-/* ---------- formulaire de tâche ---------- */
-function openForm(id,pre){editId=id||null;const j=state.jobs.find(x=>x.id===id)||pre||{};
- $("dtitle").textContent=id?"Modifier la tâche":"Nouvelle tâche";
- $("f_name").value=j.name||"";$("f_source").value=j.source||"";$("f_dest").value=j.dest||"";$("f_url").value=j.remount_url||"";
- $("f_retries").value=j.max_retries||20;$("f_ds").checked=j.exclude_ds_store!==false;$("f_mirror").checked=!!j.mirror;detect();dlg.showModal()}
-function detect(){const d=$("f_dest").value,m=d.match(/^(\/Volumes\/[^\/]+)/);if(m&&state.mounts[m[1]]&&!$("f_url").value)$("f_url").value=state.mounts[m[1]]}
-async function saveJob(){const src=$("f_source").value.trim(),dst=$("f_dest").value.trim();
- if(!src||!dst){alert("Source et destination sont obligatoires.");return}
- if(src.replace(/\/$/,"")===dst.replace(/\/$/,"")){alert("Source et destination sont identiques.");return}
- await api("/api/jobs",{id:editId,name:$("f_name").value.trim(),source:src,dest:dst,remount_url:$("f_url").value.trim(),
- max_retries:parseInt($("f_retries").value)||20,exclude_ds_store:$("f_ds").checked,mirror:$("f_mirror").checked});
- dlg.close();sig="";refresh()}
 
 if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.app){
  $("miniBtn").style.display="";$("appearance").style.display="";

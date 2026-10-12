@@ -8,7 +8,7 @@ pensée pour copier de gros fichiers vers un NAS SMB qui se déconnecte parfois.
 - Remontage automatique du partage SMB (identifiants du Trousseau)
 - Reprise des gros fichiers (`--inplace`) grâce à rsync 3 embarqué
 - rsync se met à jour tout seul (vérification toutes les 24 h)
-- Tâches enregistrées, simulation (`-n`), mode miroir optionnel
+- Simulation (`-n`) avant de copier ; chaque copie ou synchronisation apparaît dans « Transferts »
 - Historique des transferts conservé, reprise des transferts interrompus, pause / reprise / priorité
 - Icône dans la barre de menus : clic = miniature, clic droit = menu détaillé ; la fenêtre se range sans quitter
 - Design « Liquid Glass » (matières translucides, capsules, clair et sombre)

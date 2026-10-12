@@ -10,6 +10,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 VERSION="$(tr -d '[:space:]' < VERSION)"
+# Sans cible explicite, les binaires exigent la version de macOS de la machine qui compile.
+MIN_MACOS=14.0
+export MACOSX_DEPLOYMENT_TARGET=$MIN_MACOS
 BUILD="$ROOT/build"
 APP="$BUILD/Rsync GUI.app"
 CACHE="$BUILD/cache"
@@ -38,7 +41,7 @@ mkdir -p "$BUILD"
 # on garde le cache, on refait le reste
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/bin"
-swiftc -O -o "$APP/Contents/MacOS/RsyncGUI" src/RsyncGUI.swift -framework Cocoa -framework WebKit
+swiftc -O -target arm64-apple-macos$MIN_MACOS -o "$APP/Contents/MacOS/RsyncGUI" src/RsyncGUI.swift -framework Cocoa -framework WebKit
 cp src/app.py "$APP/Contents/Resources/app.py"
 rm -rf "$APP/Contents/Resources/web"
 cp -R src/web "$APP/Contents/Resources/web"

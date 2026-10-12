@@ -2,37 +2,67 @@
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Rsync GUI</title>
 <style>
-:root{--bg:#f5f5f7;--card:#fff;--fg:#1d1d1f;--mut:#6e6e73;--line:#e3e3e8;--acc:#0a66ff;--ok:#1a8f4c;--err:#d6322e;--warn:#b7791f}
-@media(prefers-color-scheme:dark){:root{--bg:#1c1c1e;--card:#2a2a2d;--fg:#f2f2f5;--mut:#9a9aa2;--line:#3a3a3e;--acc:#4c8dff;--ok:#43c077;--err:#ff6b66;--warn:#e0b050}}
+:root{
+  color-scheme:light dark;
+  --fg:#1d1d1f;--mut:rgba(60,60,67,.62);
+  --glass:rgba(255,255,255,.52);--glass2:rgba(255,255,255,.34);--glass3:rgba(255,255,255,.78);
+  --hair:rgba(0,0,0,.09);--hi:rgba(255,255,255,.75);
+  --acc:#0a84ff;--acc-t:var(--acc);--ok:#30a14e;--err:#e5413b;--warn:#d98a0b;--track:rgba(120,120,128,.20);
+  --fallback:linear-gradient(140deg,#e9eefb,#f6f1fb 50%,#e8f4f3);--ease:cubic-bezier(.2,.8,.2,1);
+}
+@supports (color:-apple-system-control-accent){:root{--acc:-apple-system-control-accent}}
+@media(prefers-color-scheme:dark){:root{
+  --fg:#f5f5f7;--mut:rgba(235,235,245,.62);--glass:rgba(58,60,70,.46);--glass2:rgba(255,255,255,.07);--glass3:rgba(88,90,102,.62);
+  --hair:rgba(255,255,255,.11);--hi:rgba(255,255,255,.16);--ok:#3ddc7a;--err:#ff6961;--warn:#ffb340;--track:rgba(235,235,245,.16);
+  --fallback:linear-gradient(140deg,#1d2030,#241c33 50%,#14262b);
+}}
 *{box-sizing:border-box}html,body{margin:0}
-body{background:var(--bg);color:var(--fg);font:13px/1.4 -apple-system,BlinkMacSystemFont,sans-serif;padding:12px;overflow-x:hidden}
-button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:8px;padding:3px 11px;cursor:pointer;white-space:nowrap}
-button:hover{border-color:var(--acc)}button.d{color:var(--err)}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.top b{font-size:14px}
-.t{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+body{background:var(--fallback);color:var(--fg);font:13px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;padding:12px;overflow-x:hidden}
+html.native body{background:transparent}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(60% 50% at 12% 8%,color-mix(in srgb,var(--acc) 16%,transparent),transparent 70%),
+             radial-gradient(50% 45% at 92% 22%,rgba(150,90,255,.12),transparent 72%),
+             radial-gradient(55% 50% at 60% 100%,rgba(48,209,160,.10),transparent 70%)}
+button{font:inherit;font-weight:500;font-size:12px;height:26px;padding:0 12px;border-radius:99px;cursor:default;color:var(--fg);
+  border:1px solid var(--hair);background:var(--glass3);box-shadow:inset 0 1px 0 var(--hi),0 1px 2px rgba(0,0,0,.06);
+  display:inline-flex;align-items:center;gap:5px;white-space:nowrap;transition:transform .18s var(--ease),filter .18s}
+button:hover{filter:brightness(1.05)}button:active{transform:scale(.96)}button.d{color:var(--err)}
+.ic{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.top{display:flex;justify-content:space-between;align-items:center;margin:0 2px 10px}.top b{font-size:14px;font-weight:650}
+.t{background:var(--glass);-webkit-backdrop-filter:blur(30px) saturate(1.8);backdrop-filter:blur(30px) saturate(1.8);
+  border:1px solid var(--hair);box-shadow:inset 0 1px 0 var(--hi),0 8px 24px rgba(20,24,40,.12);border-radius:20px;padding:14px 15px;margin-bottom:10px}
 .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.n{font-weight:600;font-size:13.5px;overflow-wrap:anywhere}
-.s{font-size:12px;white-space:nowrap;padding-top:1px}
-.running,.starting{color:var(--acc)}.retrying,.paused,.interrupted{color:var(--warn)}.done{color:var(--ok)}.error{color:var(--err)}
-.file{margin-top:10px;overflow-wrap:anywhere;line-height:1.3}
-.pb{height:8px;background:var(--line);border-radius:5px;overflow:hidden;margin:7px 0}
-.pb>i{display:block;height:100%;background:var(--acc);width:0;transition:width .4s}
-.t.isp .pb>i{background:var(--warn)}
-.kv{display:flex;flex-wrap:wrap;gap:2px 14px;color:var(--mut);font-size:12px;font-variant-numeric:tabular-nums}
-.kv b{color:var(--fg);font-weight:500}
-.tot{border-top:1px solid var(--line);margin-top:11px;padding-top:9px}
-.tot .row{display:flex;justify-content:space-between;align-items:baseline}
-.tot .row b{font-size:13px;font-variant-numeric:tabular-nums}
-.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:11px}
+.n{font-weight:650;font-size:13.5px;overflow-wrap:anywhere}
+.s{font-size:11.5px;font-weight:600;white-space:nowrap;padding:2px 10px;border-radius:99px;background:color-mix(in srgb,currentColor 14%,transparent)}
+.running,.starting{color:var(--acc-t)}.retrying,.paused,.interrupted{color:var(--warn)}.done{color:var(--ok)}.error{color:var(--err)}.stopped{color:var(--mut)}
+.file{margin-top:11px;font-weight:500;overflow-wrap:anywhere;line-height:1.3}
+.pb{height:9px;background:var(--track);border-radius:99px;overflow:hidden;margin:8px 0 9px;box-shadow:inset 0 1px 2px rgba(0,0,0,.10)}
+.pb>i{display:block;height:100%;width:0;border-radius:99px;transition:width .45s var(--ease);
+  background:linear-gradient(90deg,color-mix(in srgb,var(--acc) 72%,#fff),var(--acc));box-shadow:0 0 12px color-mix(in srgb,var(--acc) 55%,transparent)}
+.t.isp .pb>i{background:linear-gradient(90deg,color-mix(in srgb,var(--warn) 72%,#fff),var(--warn));box-shadow:0 0 12px color-mix(in srgb,var(--warn) 50%,transparent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stat{background:var(--glass2);border:1px solid var(--hair);border-radius:12px;padding:5px 10px;min-width:0}
+.stat small{display:block;color:var(--mut);font-size:10.5px;font-weight:500}
+.stat b{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tot{border-top:1px solid var(--hair);margin-top:12px;padding-top:10px}
+.tot .row{display:flex;justify-content:space-between;align-items:baseline}.tot .row b{font-size:13px;font-variant-numeric:tabular-nums}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
 .foot .c{color:var(--mut);font-size:12px}.b{display:flex;gap:6px}
-.info{color:var(--mut);font-size:12px;margin-top:8px}.empty{color:var(--mut);text-align:center;padding:22px 0}
+.info{color:var(--mut);font-size:12px;margin-top:9px}.empty{color:var(--mut);text-align:center;padding:26px 0}
 </style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <symbol id="ic-pause" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.5 3h2.4v10H4.5zM9.1 3h2.4v10H9.1z"/></symbol>
+ <symbol id="ic-play" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.6 2.8v10.4L13 8z"/></symbol>
+ <symbol id="ic-stop" viewBox="0 0 16 16"><rect fill="currentColor" stroke="none" x="3.6" y="3.6" width="8.8" height="8.8" rx="2"/></symbol>
+ <symbol id="ic-expand" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M6.5 13.5h-4v-4M13.5 2.5L9 7M2.5 13.5L7 9"/></symbol>
+</defs></svg>
 <div id="wrap">
-<div class="top"><b>Rsync GUI</b><button onclick="window.webkit.messageHandlers.app.postMessage('expand')">Agrandir</button></div>
+<div class="top"><b>Rsync GUI</b><button onclick="window.webkit.messageHandlers.app.postMessage('expand')"><svg class="ic"><use href="#ic-expand"/></svg>Agrandir</button></div>
 <div id="list"></div>
 </div>
 <script>
 const T="__TOKEN__";const $=id=>document.getElementById(id);
+if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.app)document.documentElement.classList.add("native");
 const LAB={starting:"Démarrage",running:"En cours",retrying:"Reprise…",paused:"En pause",interrupted:"Interrompu",done:"Terminé",error:"Échec",stopped:"Arrêté"};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const act=st=>["starting","running","retrying","paused"].includes(st);
@@ -40,18 +70,18 @@ const fmtS=b=>(b<1024?Math.round(b)+" o":b<1048576?(b/1024).toFixed(0)+" Ko":b<1
 const fmtDur=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return h?h+":"+String(m).padStart(2,"0")+":"+String(r).padStart(2,"0"):m+":"+String(r).padStart(2,"0")};
 const fmtEta=s=>s<60?Math.max(1,Math.round(s))+" s":s<3600?"~"+Math.round(s/60)+" min":"~"+Math.floor(s/3600)+" h "+String(Math.round(s%3600/60)).padStart(2,"0");
 const nb=n=>Number(n).toLocaleString("fr-FR");
-const kv=(label,val)=>val?`<span>${label} <b>${val}</b></span>`:"";
+const stat=(l,v)=>v?`<div class="stat"><small>${l}</small><b>${v}</b></div>`:"";
+const ic=n=>`<svg class="ic"><use href="#ic-${n}"/></svg>`;
 function prog(x){const done=x.status==="done";
  if(x.planning&&!x.current&&!x.files&&!done)return '<div class="info">Démarrage… le total est calculé en arrière-plan.</div>';
  if(done&&x.total_files===0)return '<div class="info">Rien à copier : tout est déjà à jour.</div>';
  let h="";
  if(x.current||done){
   h+=`<div class="file">${esc(x.current||"")}</div><div class="pb"><i style="width:${done?100:x.percent}%"></i></div>
-  <div class="kv">${kv("",x.cur_size?fmtS(x.cur_bytes)+" / "+fmtS(x.cur_size):"")}${kv("",x.cur_speed?fmtS(x.cur_speed)+"/s":"")}${x.cur_elapsed?kv("écoulé",fmtDur(x.cur_elapsed)):""}${x.cur_eta!=null?kv("restant",fmtDur(x.cur_eta)):""}</div>`}
+  <div class="grid">${stat("Taille",x.cur_size?fmtS(x.cur_bytes)+" / "+fmtS(x.cur_size):"")}${stat("Débit",x.cur_speed?fmtS(x.cur_speed)+"/s":"")}${stat("Écoulé",x.cur_elapsed?fmtDur(x.cur_elapsed):"")}${stat("Restant",x.cur_eta!=null?fmtDur(x.cur_eta):"")}</div>`}
  if(x.total_files>1){const pct=x.overall>=0?x.overall:0;
   h+=`<div class="tot"><div class="row"><b>Total</b><b>${done?100:pct}%</b></div><div class="pb"><i style="width:${done?100:pct}%"></i></div>
-  <div class="kv">${kv("",nb(x.files_done)+" / "+nb(x.total_files)+" fichiers")}${x.total_dirs>0?kv("",nb(x.dirs_done)+" / "+nb(x.total_dirs)+" dossiers"):""}</div>
-  <div class="kv">${x.total_bytes?kv("",fmtS(x.done_bytes)+" / "+fmtS(x.total_bytes)):""}${x.avg_speed?kv("moy.",fmtS(x.avg_speed)+"/s"):""}${x.total_eta!=null&&!done?kv("restant",fmtEta(x.total_eta)):""}</div></div>`}
+  <div class="grid">${stat("Fichiers",nb(x.files_done)+" / "+nb(x.total_files))}${x.total_dirs>0?stat("Dossiers",nb(x.dirs_done)+" / "+nb(x.total_dirs)):""}${stat("Volume",x.total_bytes?fmtS(x.done_bytes)+" / "+fmtS(x.total_bytes):"")}${stat("Vitesse moy.",x.avg_speed?fmtS(x.avg_speed)+"/s":"")}${stat("Restant",x.total_eta!=null&&!done?fmtEta(x.total_eta):"")}</div></div>`}
  else if(x.planning&&!done)h+=`<div class="info">${x.files_done} fichier(s) copié(s) · calcul du total en cours…</div>`;
  return h}
 async function call(a,id){await fetch("/api/"+a,{method:"POST",headers:{"X-Token":T,"Content-Type":"application/json"},body:JSON.stringify({id})});tick()}
@@ -63,7 +93,7 @@ async function tick(){try{const r=await fetch("/api/state",{headers:{"X-Token":T
  $("list").innerHTML=runs.length?runs.map(([id,x])=>`<div class="t${x.status==="paused"?" isp":""}"><div class="head"><span class="n">${esc(x.name)}</span>
  <span class="s ${x.status}">${LAB[x.status]}${x.attempt>1&&act(x.status)?" · essai "+x.attempt:""}</span></div>
  ${prog(x)}<div class="foot"><span class="c">${fmtDur(x.elapsed)} au total</span>
- <span class="b">${x.status==="running"?`<button onclick="call('pause','${id}')">⏸ Pause</button>`:x.status==="paused"?`<button onclick="call('resume','${id}')">▶ Reprendre</button>`:""}${act(x.status)?`<button class="d" onclick="call('stop','${id}')">Arrêter</button>`:""}</span></div></div>`).join(""):'<div class="empty">Aucun transfert.</div>';
+ <span class="b">${x.status==="running"?`<button onclick="call('pause','${id}')">${ic("pause")}Pause</button>`:x.status==="paused"?`<button onclick="call('resume','${id}')">${ic("play")}Reprendre</button>`:""}${act(x.status)?`<button class="d" onclick="call('stop','${id}')">${ic("stop")}Arrêter</button>`:""}</span></div></div>`).join(""):'<div class="empty">Aucun transfert.</div>';
  fit()}catch(e){}}
 tick();setInterval(tick,500);
 </script></body></html>

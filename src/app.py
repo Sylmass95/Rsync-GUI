@@ -473,7 +473,7 @@ class Run:
     def file_done(self):
         self.done_files[self.current] = self.cur_size or self.cur_bytes
         self.completed_bytes += self.cur_size or self.cur_bytes
-        self.files_done += 1
+        self.files_done = len(self.done_files)  # fichiers distincts : une reprise ne compte pas deux fois
         self.cur_counted = True
         self.percent = 100
 

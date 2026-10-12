@@ -41,6 +41,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     var miniMenuItem: NSMenuItem!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // RSYNCGUI_APPEARANCE=dark|light : force l'apparence (utile pour tester les deux thèmes)
+        if let mode = ProcessInfo.processInfo.environment["RSYNCGUI_APPEARANCE"] {
+            NSApp.appearance = NSAppearance(named: mode == "dark" ? .darkAqua : .aqua)
+        }
         buildMenu()
         buildWindow()
         buildMiniPanel()
@@ -61,6 +65,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         return v
     }
 
+    /// Matière translucide du système derrière l'interface web (transparente) : effet « verre ».
+    func wrapInEffect(_ view: WKWebView, material: NSVisualEffectView.Material) -> NSVisualEffectView {
+        let fx = NSVisualEffectView()
+        fx.material = material
+        fx.blendingMode = .behindWindow
+        fx.state = .active
+        view.translatesAutoresizingMaskIntoConstraints = false
+        fx.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: fx.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: fx.trailingAnchor),
+            view.topAnchor.constraint(equalTo: fx.topAnchor),
+            view.bottomAnchor.constraint(equalTo: fx.bottomAnchor),
+        ])
+        return fx
+    }
+
     func buildWindow() {
         web = makeWebView()
         window = NSWindow(
@@ -69,7 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             backing: .buffered, defer: false)
         window.title = "Rsync GUI"
         window.minSize = NSSize(width: 760, height: 520)
-        window.contentView = web
+        window.contentView = wrapInEffect(web, material: .underWindowBackground)
+        window.titlebarAppearsTransparent = true
+        window.titlebarSeparatorStyle = .none
         window.delegate = self
         window.isReleasedWhenClosed = false
         window.setFrameAutosaveName("RsyncGUIMain")
@@ -98,7 +121,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         miniPanel.isReleasedWhenClosed = false
         miniPanel.minSize = NSSize(width: 340, height: 160)
         miniPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        miniPanel.contentView = miniWeb
+        miniPanel.contentView = wrapInEffect(miniWeb, material: .popover)
+        miniPanel.titlebarAppearsTransparent = true
+        miniPanel.titlebarSeparatorStyle = .none
         miniPanel.setFrameAutosaveName("RsyncGUIMini")
         if !miniPanel.setFrameUsingName("RsyncGUIMini") {
             if let screen = NSScreen.main {

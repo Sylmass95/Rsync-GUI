@@ -33,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     var token = ""
 
     var statusItem: NSStatusItem!
+    let statusMenu = NSMenu()
     var transfers: [Transfer] = []
     var hadActive = false
     var doneTimer: Timer?
@@ -87,7 +88,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     func buildMiniPanel() {
         miniWeb = makeWebView()
         miniPanel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 320),
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 320),
             styleMask: [.titled, .closable, .resizable, .utilityWindow],
             backing: .buffered, defer: false)
         miniPanel.title = "Rsync GUI"
@@ -95,7 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         miniPanel.isFloatingPanel = true
         miniPanel.hidesOnDeactivate = false
         miniPanel.isReleasedWhenClosed = false
-        miniPanel.minSize = NSSize(width: 300, height: 140)
+        miniPanel.minSize = NSSize(width: 340, height: 160)
         miniPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         miniPanel.contentView = miniWeb
         miniPanel.setFrameAutosaveName("RsyncGUIMini")
@@ -132,11 +133,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
 
     func userContentController(_ userContentController: WKUserContentController,
                                didReceive message: WKScriptMessage) {
+        if message.webView === miniWeb, let body = message.body as? [String: Any],
+           let h = (body["h"] as? NSNumber)?.doubleValue {
+            fitMini(contentHeight: CGFloat(h))
+            return
+        }
         switch message.body as? String {
         case "mini": enterMini()
         case "expand": expand()
         default: break
         }
+    }
+
+    /// Ajuste la hauteur de la miniature à son contenu, en gardant le bord supérieur en place.
+    func fitMini(contentHeight: CGFloat) {
+        let maxH = (NSScreen.main?.visibleFrame.height ?? 800) - 80
+        let h = min(max(contentHeight, 160), maxH)
+        var frame = miniPanel.frame
+        let target = miniPanel.frameRect(forContentRect: NSRect(x: 0, y: 0, width: frame.width, height: h))
+        guard abs(target.height - frame.height) > 2 else { return }
+        frame.origin.y += frame.height - target.height
+        frame.size.height = target.height
+        miniPanel.setFrame(frame, display: true, animate: false)
     }
 
     // MARK: barre de menus
@@ -149,13 +167,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
             button.image = img
             button.imagePosition = .imageLeading
         }
-        let menu = NSMenu()
-        menu.delegate = self
-        statusItem.menu = menu
+        statusMenu.delegate = self
+        if let button = statusItem.button {
+            button.target = self
+            button.action = #selector(statusClicked(_:))
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
+    }
+
+    /// Clic = mode miniature (ou retour à la grande fenêtre) ; clic droit / ctrl-clic = menu détaillé.
+    @objc func statusClicked(_ sender: NSStatusBarButton) {
+        let event = NSApp.currentEvent
+        if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+            statusItem.menu = statusMenu
+            statusItem.button?.performClick(nil)
+            statusItem.menu = nil
+        } else {
+            toggleMini()
+        }
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
-        guard menu === statusItem.menu else { return }
+        guard menu === statusMenu else { return }
         menu.removeAllItems()
         let active = transfers.filter { $0.isActive }
         if transfers.isEmpty {
@@ -273,7 +306,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
                 if !NSApp.isActive { NSApp.requestUserAttention(.informationalRequest) }
             }
             if doneTimer?.isValid != true { button.title = "" }
-            button.toolTip = "Rsync GUI"
+            button.toolTip = "Rsync GUI — clic : miniature · clic droit : menu"
         }
     }
 

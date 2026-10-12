@@ -40,6 +40,8 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources/bin"
 swiftc -O -o "$APP/Contents/MacOS/RsyncGUI" src/RsyncGUI.swift -framework Cocoa -framework WebKit
 cp src/app.py "$APP/Contents/Resources/app.py"
+rm -rf "$APP/Contents/Resources/web"
+cp -R src/web "$APP/Contents/Resources/web"
 cp "$CACHE/rsync" "$APP/Contents/Resources/bin/rsync"
 cp assets/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 sed "s/__VERSION__/$VERSION/g" src/Info.plist > "$APP/Contents/Info.plist"

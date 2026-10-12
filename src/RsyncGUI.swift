@@ -40,17 +40,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
     var pollTimer: Timer?
     var miniMenuItem: NSMenuItem!
 
+    /// Apparence : "auto" (suit le système, par défaut), "light" ou "dark". Mémorisée entre les lancements.
+    var appearanceMode = "auto"
+    var appearanceItems: [String: NSMenuItem] = [:]
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // RSYNCGUI_APPEARANCE=dark|light : force l'apparence (utile pour tester les deux thèmes)
-        if let mode = ProcessInfo.processInfo.environment["RSYNCGUI_APPEARANCE"] {
-            NSApp.appearance = NSAppearance(named: mode == "dark" ? .darkAqua : .aqua)
+        // RSYNCGUI_APPEARANCE=dark|light : force l'apparence sans la mémoriser (tests)
+        if let forced = ProcessInfo.processInfo.environment["RSYNCGUI_APPEARANCE"] {
+            applyAppearance(forced == "dark" ? "dark" : "light", save: false)
+        } else {
+            applyAppearance(UserDefaults.standard.string(forKey: "appearance") ?? "auto", save: false)
         }
         buildMenu()
+        refreshAppearanceMenu()
         buildWindow()
         buildMiniPanel()
         buildStatusItem()
         startServer()
         NSApp.activate(ignoringOtherApps: true)
+    }
+
+    // MARK: apparence (automatique / clair / sombre)
+
+    func applyAppearance(_ mode: String, save: Bool = true) {
+        appearanceMode = ["light", "dark"].contains(mode) ? mode : "auto"
+        switch appearanceMode {
+        case "light": NSApp.appearance = NSAppearance(named: .aqua)
+        case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
+        default: NSApp.appearance = nil   // suit le système
+        }
+        if save { UserDefaults.standard.set(appearanceMode, forKey: "appearance") }
+        refreshAppearanceMenu()
+        pushAppearanceToPages()
+    }
+
+    func refreshAppearanceMenu() {
+        for (key, item) in appearanceItems { item.state = key == appearanceMode ? .on : .off }
+    }
+
+    /// Informe les pages web du mode choisi (pour marquer le bon bouton).
+    func pushAppearanceToPages() {
+        let js = "window.__setAppearance && window.__setAppearance('\(appearanceMode)')"
+        web?.evaluateJavaScript(js, completionHandler: nil)
+        miniWeb?.evaluateJavaScript(js, completionHandler: nil)
+    }
+
+    @objc func chooseAppearance(_ sender: NSMenuItem) {
+        if let mode = sender.representedObject as? String { applyAppearance(mode) }
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        pushAppearanceToPages()
     }
 
     // MARK: fenêtre principale
@@ -161,6 +201,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         if message.webView === miniWeb, let body = message.body as? [String: Any],
            let h = (body["h"] as? NSNumber)?.doubleValue {
             fitMini(contentHeight: CGFloat(h))
+            return
+        }
+        if let body = message.body as? [String: Any], let mode = body["appearance"] as? String {
+            applyAppearance(mode)
             return
         }
         switch message.body as? String {
@@ -527,7 +571,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, NSMe
         ])
         let reloadItem = item("Recharger", #selector(reload), "r"); reloadItem.target = self
         miniMenuItem = item("Mode miniature", #selector(toggleMini), "m", [.command, .shift]); miniMenuItem.target = self
-        submenu("Présentation", [reloadItem, miniMenuItem])
+        let appearanceHolder = NSMenuItem(title: "Apparence", action: nil, keyEquivalent: "")
+        let appearanceMenu = NSMenu(title: "Apparence")
+        for (key, title) in [("auto", "Automatique"), ("light", "Clair"), ("dark", "Sombre")] {
+            let item = NSMenuItem(title: title, action: #selector(chooseAppearance(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = key
+            appearanceMenu.addItem(item)
+            appearanceItems[key] = item
+        }
+        appearanceHolder.submenu = appearanceMenu
+        submenu("Présentation", [reloadItem, miniMenuItem, .separator(), appearanceHolder])
         submenu("Fenêtre", [
             item("Réduire", #selector(NSWindow.performMiniaturize(_:)), "m"),
             item("Fermer", #selector(NSWindow.performClose(_:)), "w"),

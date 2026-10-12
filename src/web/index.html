@@ -61,6 +61,7 @@ button.sm{height:26px;padding:0 11px;font-size:12px}
 .seg button{background:transparent;border-color:transparent;box-shadow:none;height:26px;width:28px;padding:0}
 .seg button:hover{background:var(--glass3)}
 .seg button.on{color:#e8a200}
+#appearance button.on{color:var(--fg);background:var(--glass3);box-shadow:inset 0 1px 0 var(--hi),0 1px 3px rgba(0,0,0,.14)}
 
 /* ===== En-tête ===== */
 .top{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:8px 10px 8px 14px;border-radius:99px;margin-bottom:14px}
@@ -182,6 +183,9 @@ dialog .hint{margin:6px 2px 0}
  <symbol id="ic-pause" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.5 3h2.4v10H4.5zM9.1 3h2.4v10H9.1z"/></symbol>
  <symbol id="ic-play" viewBox="0 0 16 16"><path fill="currentColor" stroke="none" d="M4.6 2.8v10.4L13 8z"/></symbol>
  <symbol id="ic-stop" viewBox="0 0 16 16"><rect fill="currentColor" stroke="none" x="3.6" y="3.6" width="8.8" height="8.8" rx="2"/></symbol>
+ <symbol id="ic-auto" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.6"/><path fill="currentColor" stroke="none" d="M8 2.4a5.6 5.6 0 0 1 0 11.2z"/></symbol>
+ <symbol id="ic-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.8"/><path d="M8 1.8v1.5M8 12.7v1.5M1.8 8h1.5M12.7 8h1.5M3.6 3.6l1 1M11.4 11.4l1 1M12.4 3.6l-1 1M4.6 11.4l-1 1"/></symbol>
+ <symbol id="ic-moon" viewBox="0 0 16 16"><path d="M13.2 9.6A5.6 5.6 0 0 1 6.4 2.8a5.6 5.6 0 1 0 6.8 6.8z"/></symbol>
  <symbol id="ic-mini" viewBox="0 0 16 16"><rect x="1.8" y="3" width="12.4" height="9.4" rx="2.4"/><rect fill="currentColor" stroke="none" x="8" y="7.2" width="4.6" height="3.6" rx="1.2"/></symbol>
  <symbol id="ic-redo" viewBox="0 0 16 16"><path d="M3 8a5 5 0 1 0 1.6-3.7"/><path d="M3 2.6v2.8h2.8"/></symbol>
  <symbol id="ic-plus" viewBox="0 0 16 16"><path d="M8 3.2v9.6M3.2 8h9.6"/></symbol>
@@ -198,6 +202,11 @@ dialog .hint{margin:6px 2px 0}
  <div class="pills">
   <span class="pill" id="mounts"></span>
   <span class="pill" id="rs"></span>
+  <div class="seg" id="appearance" style="display:none" title="Apparence">
+   <button data-mode="auto" title="Automatique (suit le système)"><svg class="ic"><use href="#ic-auto"/></svg></button>
+   <button data-mode="light" title="Clair"><svg class="ic"><use href="#ic-sun"/></svg></button>
+   <button data-mode="dark" title="Sombre"><svg class="ic"><use href="#ic-moon"/></svg></button>
+  </div>
   <button class="sm" id="miniBtn" style="display:none" onclick="window.webkit.messageHandlers.app.postMessage('mini')"><svg class="ic"><use href="#ic-mini"/></svg>Miniature</button>
  </div>
 </header>
@@ -470,7 +479,11 @@ async function saveJob(){const src=$("f_source").value.trim(),dst=$("f_dest").va
  max_retries:parseInt($("f_retries").value)||20,exclude_ds_store:$("f_ds").checked,mirror:$("f_mirror").checked});
  dlg.close();sig="";refresh()}
 
-if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.app)$("miniBtn").style.display="";
+if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.app){
+ $("miniBtn").style.display="";$("appearance").style.display="";
+ $("appearance").addEventListener("click",e=>{const b=e.target.closest("button[data-mode]");if(b)window.webkit.messageHandlers.app.postMessage({appearance:b.dataset.mode})});
+}
+window.__setAppearance=m=>{document.querySelectorAll("#appearance button").forEach(b=>b.classList.toggle("on",b.dataset.mode===m))};
 
 /* ---------- démarrage ---------- */
 buildPane("L");buildPane("R");

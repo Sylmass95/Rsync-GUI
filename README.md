@@ -12,6 +12,7 @@ pensée pour copier de gros fichiers vers un NAS SMB qui se déconnecte parfois.
 - Historique des transferts conservé, reprise des transferts interrompus, pause / reprise / priorité
 - Icône dans la barre de menus : clic = miniature, clic droit = menu détaillé ; la fenêtre se range sans quitter
 - Design « Liquid Glass » (matières translucides, capsules, clair et sombre)
+- Apparence au choix : Automatique (par défaut, suit le système), Clair ou Sombre — sélecteur dans l'en-tête ou menu Présentation › Apparence, mémorisé
 
 ## Construire
 

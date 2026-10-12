@@ -59,6 +59,10 @@ Résultat : `build/Rsync GUI.app` et `build/Rsync-GUI-<version>.dmg`.
 - **macOS 14 ou plus récent**, Mac Apple Silicon (le binaire est compilé pour arm64). Testé uniquement sur macOS 26.
 - **Outils de ligne de commande Xcode** : ils fournissent `python3`, que l'app utilise en interne, et permettent la mise à jour automatique de rsync (compilation). Les installer avec `xcode-select --install`.
 
+## Licence
+
+Le code de Rsync GUI est publié sous licence **MIT** (voir [`LICENSE`](LICENSE)).
+
 ## Licences des composants
 
 rsync est un programme sous licence **GPLv3** (https://rsync.samba.org) ; il est embarqué comme programme séparé, sans modification.

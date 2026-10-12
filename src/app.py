@@ -298,6 +298,12 @@ class Run:
         self.samples = deque(maxlen=14)
         self.done_files = {}   # nom -> taille des fichiers terminés par la copie
         self.done_dirs = set()
+        self.plan_files = None  # nom -> taille d'après l'analyse initiale (None tant qu'elle n'est pas finie)
+        self.plan_dirs = set()
+        self.cur_finished_at = None   # fin du fichier en cours : le chronomètre s'arrête là
+        self.pause_started = None
+        self.paused_total = 0.0
+        self.cur_paused_base = 0.0
 
     def say(self, text):
         self.log.append("%s  %s" % (time.strftime("%H:%M:%S"), text))
@@ -322,19 +328,43 @@ class Run:
     def metrics(self):
         now = time.time()
         active = self.active_time + (now - self.attempt_start if self.attempt_start else 0)
+
+        # Octets et fichiers terminés : comptés une seule fois par nom, même si une reprise les renvoie.
+        if self.done_files:
+            self.completed_bytes = sum(self.done_files.values())
+            self.files_done = len(self.done_files)
+        if self.done_dirs:
+            self.dirs_done = len(self.done_dirs)
         done = self.completed_bytes + (0 if self.cur_counted else self.cur_bytes)
-        avg = done / active if active > 2 and done > 0 else 0.0
+
+        # Totaux : union de l'analyse initiale et de ce qui a été copié, donc ils grandissent si des fichiers
+        # apparaissent pendant la copie et le « fait » ne dépasse jamais le total.
+        if self.plan_files is not None:
+            union = dict(self.plan_files)
+            union.update(self.done_files)
+            if not self.cur_counted and self.current:
+                union[self.current] = max(union.get(self.current, 0), self.cur_size)
+            self.total_files = len(union)
+            self.total_bytes = sum(union.values())
+            self.total_dirs = len(self.plan_dirs | self.done_dirs)
         total = self.total_bytes
+
+        avg = done / active if active > 2 and done > 0 else 0.0
         overall = -1
         if total:
-            overall = min(100, int(done * 100 / total))
+            overall = min(99, int(done * 100 / total))   # 100 % seulement quand c'est vraiment fini
         if self.status == "done":
             overall = 100 if total else overall
         total_eta = (total - done) / avg if total and avg > 0 and done < total else None
         cur_eta = None
         if not self.cur_counted and self.cur_speed > 0 and self.cur_size > self.cur_bytes:
             cur_eta = (self.cur_size - self.cur_bytes) / self.cur_speed
-        cur_elapsed = int(now - self.cur_started) if self.cur_started else 0
+
+        # Chronomètre du fichier : s'arrête à la fin du fichier, en pause et à la fin de l'exécution.
+        cur_elapsed = 0
+        if self.cur_started:
+            end = self.cur_finished_at or self.finished or self.pause_started or now
+            cur_elapsed = int(max(0, end - self.cur_started - (self.paused_total - self.cur_paused_base)))
         return {
             "planning": self.planning,
             "total_bytes": total, "done_bytes": done, "overall": overall,
@@ -457,12 +487,8 @@ class Run:
                 plan_files[name] = int(m.group(1))
         if not plan_files and not plan_dirs and "Number of files" not in text:
             return
-        # exact : fichiers à copier d'après l'analyse + ceux que la copie a déjà terminés entre-temps
-        union = dict(plan_files)
-        union.update(self.done_files)
-        self.total_files = len(union)
-        self.total_bytes = sum(union.values())
-        self.total_dirs = len(plan_dirs | self.done_dirs)
+        self.plan_files, self.plan_dirs = plan_files, plan_dirs
+        self.metrics()   # met les totaux à jour (union avec ce qui est déjà copié)
         self.say("Total à copier : %d fichier(s), %s." % (self.total_files, fr_bytes(self.total_bytes)))
 
     def resolve(self, name):
@@ -471,10 +497,11 @@ class Run:
         return os.path.join(base, name)
 
     def file_done(self):
-        self.done_files[self.current] = self.cur_size or self.cur_bytes
-        self.completed_bytes += self.cur_size or self.cur_bytes
-        self.files_done = len(self.done_files)  # fichiers distincts : une reprise ne compte pas deux fois
+        self.done_files[self.current] = self.cur_size or self.cur_bytes   # affectation : compté une seule fois
+        self.completed_bytes = sum(self.done_files.values())
+        self.files_done = len(self.done_files)
         self.cur_counted = True
+        self.cur_finished_at = self.pause_started or time.time()          # le chronomètre du fichier s'arrête
         self.percent = 100
 
     def parse(self, line):
@@ -506,7 +533,7 @@ class Run:
             return
         if line.endswith("/"):
             self.done_dirs.add(line)
-            self.dirs_done += 1
+            self.dirs_done = len(self.done_dirs)
             self.files += 1
             self.log.append(line)
             return
@@ -516,6 +543,8 @@ class Run:
         self.cur_bytes = 0
         self.cur_speed = 0.0
         self.cur_started = time.time()
+        self.cur_finished_at = None
+        self.cur_paused_base = self.paused_total
         self.cur_dest = os.path.join(self.job["dest"], line)
         # nouveau fichier : sa taille sur la destination suit la progression (rsync --inplace)
         self.cur_live = not os.path.exists(self.cur_dest)
@@ -576,10 +605,14 @@ class Run:
             self.attempt_start = None
             self.paused = False
             self.cur_counted = True  # un fichier interrompu sera repris et recompté
+            if self.cur_finished_at is None:
+                self.cur_finished_at = time.time()
             self.cur_speed = 0.0
             if self.stop_flag:
                 break
             if rc == 0:
+                if self.plan_files is None:     # l'analyse n'est jamais arrivée : le total est ce qui a été copié
+                    self.plan_files, self.plan_dirs = {}, set()
                 self.status = "done"
                 self.percent = 100
                 self.say("Terminé avec succès.")
@@ -656,6 +689,7 @@ class Run:
         self.paused = True
         self.status = "paused"
         self.cur_speed = 0.0
+        self.pause_started = time.time()
         if self.attempt_start:
             self.active_time += time.time() - self.attempt_start
             self.attempt_start = None
@@ -669,6 +703,9 @@ class Run:
         self.signal_group(signal.SIGCONT)
         self.paused = False
         self.status = "running"
+        if self.pause_started:
+            self.paused_total += time.time() - self.pause_started
+            self.pause_started = None
         self.attempt_start = time.time()
         self.keep_awake()
         self.say("Transfert repris.")

@@ -60,6 +60,12 @@ L'app est signée « ad hoc » (sans compte développeur). Après copie depuis l
 faire clic droit → Ouvrir la première fois. Au premier lancement, macOS demande l'accès aux dossiers,
 volumes réseau et disques externes : accepter.
 
+## Tests
+
+```bash
+python3 -m unittest discover tests   # avancement : chronomètres, totaux, octets
+```
+
 ## Branches
 
 - `main` : dernière version validée
